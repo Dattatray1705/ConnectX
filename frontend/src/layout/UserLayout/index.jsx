@@ -8,11 +8,7 @@ export default function UserLayout({ children }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      dispatch(getAboutUser());
-    }
+    dispatch(getAboutUser());
   }, [dispatch]);
 
   return (

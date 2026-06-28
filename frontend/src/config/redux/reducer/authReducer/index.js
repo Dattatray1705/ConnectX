@@ -13,7 +13,6 @@ import {
 const initialState = {
   user: null,
   profile: null,
-  token: null,
   isLoading: false,
   isError: false,
   isSuccess: false,
@@ -53,7 +52,6 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.profile = null;
-      state.token = null;
       state.loggedIn = false;
       state.profileFetched = false;
       state.isTokenThere = false;
@@ -75,15 +73,14 @@ const authSlice = createSlice({
         state.isError = false;
         state.message = "Logging in...";
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.loggedIn = true;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.justLoggedIn = true; 
-        state.message = "Login successful";
-        localStorage.setItem("token", action.payload.token);
-      })
+     .addCase(loginUser.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.loggedIn = true;
+  state.isTokenThere = true;
+  state.user = action.payload.user;
+  state.justLoggedIn = true;
+  state.message = "Login successful";
+})
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
@@ -112,9 +109,19 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isError = false;
         state.profileFetched = true;
+        state.loggedIn = true;
+        state.isTokenThere = true;
         state.profile = action.payload  // ✅ FIX
-
+        state.user = action.payload.userId;
       })
+   .addCase(getAboutUser.rejected, (state, action) => {
+  state.isLoading = false;
+  state.loggedIn = false;
+  state.isTokenThere = false;
+  state.profile = null;
+  state.profileFetched = true; // ✅ true
+  state.message = action.payload;
+})
 
       // GET ALL USERS
       .addCase(getAllUsers.fulfilled, (state, action) => {

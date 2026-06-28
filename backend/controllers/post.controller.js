@@ -10,27 +10,38 @@ export const activeCheak = (req, res) => {
 /* ================= CREATE POST ================= */
 export const createPost = async (req, res) => {
   try {
+  
+
+     if (!req.body.body && !req.file) {
+      return res.status(400).json({
+        message: "Post must contain text or media",
+      });
+    }
     // ✅ TOKEN FROM HEADER
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1];
+   const user = await User.findById(req.userId);
 
-    if (!token) {
-      return res.status(401).json({ message: "Token missing" });
-    }
+if (!user) {
+  return res.status(404).json({
+    message: "User not found"
+  });
+}
 
-    const user = await User.findOne({ token });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const post = new Post({
-      userId: user._id,
-      body: req.body.body,
-      media: req.file ? req.file.filename : "",
-    });
+const post = new Post({
+  userId: user._id,
+  body: req.body.body,
+  media: req.file ? req.file.path : "",
+  fileType: req.file ? req.file.mimetype : "",
+});
 
     await post.save();
-    return res.status(201).json({ message: "Post created successfully" });
+    
+    const newPost = await Post.findById(post._id)
+.populate(
+  "userId",
+  "name username email profilePicture"
+)
+
+   return res.status(201).json(newPost);
 
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -43,8 +54,20 @@ export const getAllPosts = async (req, res) => {
     const posts = await Post.find()
       .populate("userId", "name username email profilePicture")
       .sort({ createdAt: -1 });
+       const postsWithCommentsCount = await Promise.all(
+      posts.map(async (post) => {
+        const commentsCount = await Comment.countDocuments({
+          postId: post._id,
+        });
 
-    return res.status(200).json(posts); // ✅ array directly
+        return {
+          ...post._doc,
+          commentsCount,
+        };
+      })
+    );
+ return res.status(200).json(postsWithCommentsCount);
+// ✅ array directly
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -53,10 +76,9 @@ export const getAllPosts = async (req, res) => {
 /* ================= DELETE POST ================= */
 export const deletePost = async (req, res) => {
   try {
-    const { token, post_id } = req.body;
+    const { post_id } = req.body;
 
-    const user = await User.findOne({ token }).select("_id");
-    if (!user) {
+const user = await User.findById(req.userId).select("_id");    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -95,9 +117,9 @@ export const get_comment_by_post = async (req, res) => {
 /* ================= DELETE COMMENT ================= */
 export const delete_comment_of_user = async (req, res) => {
   try {
-    const { token, comment_id } = req.body;
+    const {comment_id } = req.body;
 
-    const user = await User.findOne({ token }).select("_id");
+    const user = await User.findById(req.userId).select("_id");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -122,29 +144,55 @@ export const delete_comment_of_user = async (req, res) => {
 /* ================= LIKE POST ================= */
 export const increment_like = async (req, res) => {
   try {
+
     const { post_id } = req.body;
 
+    const userId = req.userId;
+
     const post = await Post.findById(post_id);
+
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({
+        message: "Post not found"
+      });
     }
 
-    post.likes = (post.likes || 0) + 1;
+    // Check if this user already liked the post
+   const alreadyLiked = post.likes.some(
+    (id) => id.toString() === userId
+);
+
+if (alreadyLiked) {
+    return res.status(400).json({
+        message: "You already liked this post"
+    });
+}
+
+    // Add the user's ID
+    post.likes.push(userId);
+
     await post.save();
 
-    return res.status(200).json({ message: "Like incremented" });
+    return res.status(200).json({
+      message: "Post liked successfully",
+      totalLikes: post.likes.length
+    });
 
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+
+    return res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 
 /* ================= COMMENT ON POST ================= */
 export const commentPost = async (req, res) => {
   try {
-    const { token, post_id, commentBody } = req.body;
+    const {post_id, commentBody } = req.body;
 
-    const user = await User.findOne({ token }).select("_id");
+const user = await User.findById(req.userId).select("_id");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

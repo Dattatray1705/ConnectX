@@ -43,10 +43,17 @@ const postSlice = createSlice({
       .addCase(createPost.pending, (state) => {
         state.isLoading = true;
 })
+
+
 .addCase(createPost.fulfilled, (state, action) => {
+  console.log("CREATE POST PAYLOAD =", action.payload);
   state.isLoading = false;
-  state.posts.unshift(action.payload); // add new post on top
-})
+
+
+  state.posts = [action.payload, ...state.posts];
+   console.log("AFTER ADD =", state.posts.length);
+}) // add new post on top
+
 .addCase(createPost.rejected, (state, action) => {
   state.isLoading = false;
   state.isError = true;

@@ -52,20 +52,14 @@ export const getAboutUser = createAsyncThunk(
   "user/getAboutUser",
   async (_, thunkAPI) => {
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        return thunkAPI.rejectWithValue("Token missing");
-      }
 
       const response = await clientServer.get(
         "/api/users/get_user_and_profile",
-        {
-          params: { token } // ✅ THIS IS THE KEY FIX
-        }
+    
       );
 
       return response.data;
+
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Failed to fetch user"
@@ -92,16 +86,11 @@ export const getAllUsers = createAsyncThunk(
 
 export const getConnectionRequest = createAsyncThunk(
   "user/getConnectionRequest",
-  async (user, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
 
       const response = await clientServer.get(
         "/api/users/user/getConnectionRequest",
-        {
-          params: {
-            token: user.token
-          }
-        }
       );
 
       return response.data.requests;
@@ -121,13 +110,14 @@ export const sendConnectionRequest = createAsyncThunk(
       const response = await clientServer.post(
         "/api/users/user/send_connection_request",
         {
-          token: user.token,
-          connectionId: user.connectionId   // ✅ FIX
+          
+         connectionId: user.connectionId  // ✅ FIX
         }
       );
 
-      thunkAPI.dispatch(getConnectionRequest({ token:user.token }))
-
+thunkAPI.dispatch(
+  getConnectionRequest()
+)
       return thunkAPI.fulfillWithValue(response.data);
 
     } catch (error) {
@@ -142,14 +132,12 @@ export const sendConnectionRequest = createAsyncThunk(
 
 export const getMyConnectionsRequest = createAsyncThunk(
   "user/getMyConnectionRequest",
-  async (user, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
 
       const response = await clientServer.get(
         "/api/users/user/getMyConnections",
-        {
-          params: { token: user.token }
-        }
+
       );
 
       return response.data.connections;   // ✅ important
@@ -170,14 +158,13 @@ export const acceptConnection = createAsyncThunk(
       const response = await clientServer.post(
         "/api/users/user/acceptConnection_Request",
         {
-          token:user.token,
           requestId:user.requestId,
-          action_type:user.action
+          action_type:user.action_type
         }
       );
 
-      thunkAPI.dispatch(getConnectionRequest({token:user.token}))
-      thunkAPI.dispatch(getMyConnectionsRequest({token:user.token}))
+      thunkAPI.dispatch(getConnectionRequest())
+      thunkAPI.dispatch(getMyConnectionsRequest())
 
       return response.data
 
@@ -190,3 +177,22 @@ export const acceptConnection = createAsyncThunk(
     }
   }
 )
+
+
+export const downloadProfile = createAsyncThunk(
+  "user/downloadProfile",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await clientServer.get(
+        `/api/users/user/download_profile?id=${userId}`
+      );
+
+      return response.data;
+
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Download failed"
+      );
+    }
+  }
+);

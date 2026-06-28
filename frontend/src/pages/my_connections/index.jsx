@@ -18,21 +18,21 @@ export default function MyConnection() {
   const authState = useSelector((state) => state.auth);
   const router = useRouter();
 
-  useEffect(() => {
+useEffect(() => {
+  dispatch(getMyConnectionsRequest());
+  dispatch(getConnectionRequest());
+}, [dispatch]);
 
-    const token = localStorage.getItem("token");
+ const currentUserId =
+  authState?.profile?.userId?._id;
 
-    if (token) {
-      dispatch(getMyConnectionsRequest({ token }));
-      dispatch(getConnectionRequest({ token }));
-    }
-
-  }, [dispatch]);
-
-  const pendingRequests = authState.connectionRequest?.filter(
-    (conn) => conn.status_accepted === null
+const pendingRequests =
+  authState.connectionRequest?.filter(
+    (conn) =>
+      conn.status_accepted === null &&
+      String(conn.connectionId?._id) ===
+      String(currentUserId)
   );
-
   const acceptedConnections = authState.connections?.filter(
     (conn) => conn.status_accepted === true
   );
@@ -77,7 +77,7 @@ export default function MyConnection() {
                     <div className={styles.profilePicture}>
                       <img
                         className={styles.imgCard}
-                        src={`${BASE_URL}/uploads/${conn.userId?.profilePicture}`}
+                        src={conn.userId?.profilePicture || "/default.jpg"}
                         alt=""
                       />
                     </div>
@@ -89,24 +89,24 @@ export default function MyConnection() {
 
                   </div>
 
-                  <button
-                    onClick={async (e) => {
+<button
+  onClick={async (e) => {
+    e.stopPropagation();
 
-                      e.stopPropagation();
+    await dispatch(
+      acceptConnection({
+        requestId: conn._id,
+        action_type: "accept",
+      })
+    );
 
-                      await dispatch(
-                        acceptConnection({
-                          requestId: conn._id,
-                          token: localStorage.getItem("token"),
-                          action: "accept",
-                        })
-                      );
-
-                    }}
-                    className={styles.connectedButton}
-                  >
-                    Accept
-                  </button>
+    dispatch(getMyConnectionsRequest());
+    dispatch(getConnectionRequest());
+  }}
+  className={styles.connectedButton}
+>
+  Accept
+</button>
 
                 </div>
 
@@ -125,7 +125,7 @@ export default function MyConnection() {
 
 {acceptedConnections?.map((conn,index)=>{
 
-const currentUserId = authState?.user?.id
+const currentUserId = authState?.profile?.userId?._id;
 
 const user =
 conn.userId?._id === currentUserId
@@ -144,8 +144,9 @@ onClick={()=>router.push(`/view_profile/${user?.username}`)}
 
 <div className={styles.profilePicture}>
 <img
-className={styles.imgCard}
-src={`${BASE_URL}/uploads/${user?.profilePicture}`}
+  className={styles.imgCard}
+  src={user?.profilePicture}
+  alt="profile"
 />
 </div>
 

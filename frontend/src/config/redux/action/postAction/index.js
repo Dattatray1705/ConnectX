@@ -21,7 +21,7 @@ export const createPost = createAsyncThunk(
   "post/createPost",
   async ({ file, body }, thunkAPI) => {
     try {
-      const token = localStorage.getItem("token");
+
 
       const formData = new FormData();
       formData.append("body", body);
@@ -29,12 +29,8 @@ export const createPost = createAsyncThunk(
 
       const response = await clientServer.post(
         "/api/posts/create_post",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        formData
+        
       );
 
       return response.data;
@@ -53,7 +49,7 @@ export const deletePost = createAsyncThunk(
 try{
   const responce = await clientServer.delete("/api/posts/delete_post", {
     data: { 
-        token: localStorage.getItem("token"),
+      
         post_id: post_id
      }
   })
@@ -108,7 +104,6 @@ export const postComment = createAsyncThunk(
   async (commentData, thunkAPI) =>{
  try{
    const response = await clientServer.post("/api/posts/user/comment_post",{
-     token : localStorage.getItem("token"),
      post_id : commentData.post_id,
      commentBody: commentData.comment
    });

@@ -1,54 +1,268 @@
-.allUserProfile{
-    max-width: 80%;
-    align-items: center;
+/* ===========================
+   Discover Page
+=========================== */
+.Discover{
+  text-align: center;
+}
+.allUserProfile {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap:1.2rem;
-
-
-
-
-
-}
-
-
-
-
-
-.userCard{
-    display: flex;
-    gap: 1.2rem;
-    padding:1.3rem;
     align-items: center;
-    box-shadow: 10px 10px 10px 0px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+    padding: 20px 0 40px;
+}
+
+/* ===========================
+   User Card
+=========================== */
+
+.userCard {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    background: #fff;
+    border-radius: 15px;
     cursor: pointer;
-
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    transition: all .3s ease;
 }
-.userCard_img{
-    width: 10%;
+
+.userCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, .15);
+}
+
+/* ===========================
+   Profile Image
+=========================== */
+
+.userCard_img {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
     border-radius: 50%;
-
-
-
+    object-fit: cover;
+    background: #ececec;
+    border: 2px solid #f1f1f1;
 }
+
+/* ===========================
+   User Info
+=========================== */
+
+.userInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.status {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.userInfo h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.userInfo p:last-child {
+    margin-top: 4px;
+    font-size: 16px;
+    color: #555;
+    word-break: break-word;
+}
+
+/* ===========================
+   Search
+=========================== */
+
 .searchContainer {
-  margin: 15px 0 25px 0;
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 30px;
 }
 
 .searchInput {
-  width: 60%;
-  padding: 12px 18px;
-  border-radius: 25px;
-  border: 1px solid #ddd;
-  outline: none;
-  font-size: 16px;
-  transition: 0.3s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 650px;
+    padding: 14px 22px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    outline: none;
+    font-size: 16px;
+    transition: .3s;
+    box-shadow: 0 3px 8px rgba(0,0,0,.08);
 }
 
 .searchInput:focus {
-  border-color: #0070f3;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border-color: #2563eb;
+    box-shadow: 0 6px 12px rgba(0,0,0,.15);
+}
+
+/* ===========================
+   Desktop (1200px+)
+=========================== */
+
+@media (min-width:1200px){
+
+.userCard{
+    max-width:650px;
+}
+
+.userInfo h2{
+    font-size:28px;
+}
+
+.userCard_img{
+    width:75px;
+    height:75px;
+    min-width:75px;
+}
+
+}
+
+/* ===========================
+   Laptop
+=========================== */
+
+@media (max-width:992px){
+
+.userCard{
+    max-width:100%;
+    padding:16px;
+}
+
+.userInfo h2{
+    font-size:24px;
+}
+
+.searchInput{
+    width:90%;
+}
+
+}
+
+/* ===========================
+   Tablet
+=========================== */
+
+@media (max-width:768px){
+
+.allUserProfile{
+    padding:15px 0;
+}
+
+.userCard{
+    gap:15px;
+    padding:15px;
+}
+
+.userCard_img{
+    width:60px;
+    height:60px;
+    min-width:60px;
+}
+
+.userInfo h2{
+    font-size:22px;
+}
+
+.userInfo p:last-child{
+    font-size:15px;
+}
+
+.status{
+    font-size:13px;
+}
+
+.searchInput{
+    width:95%;
+    font-size:15px;
+}
+
+}
+
+/* ===========================
+   Mobile
+=========================== */
+
+@media (max-width:576px){
+
+.allUserProfile{
+    gap:15px;
+}
+
+.userCard{
+    width:100%;
+    padding:12px;
+    gap:12px;
+    border-radius:12px;
+}
+
+.userCard_img{
+    width:50px;
+    height:50px;
+    min-width:50px;
+}
+
+.userInfo h2{
+    font-size:19px;
+}
+
+.userInfo p:last-child{
+    font-size:14px;
+}
+
+.status{
+    font-size:12px;
+}
+
+.searchInput{
+    width:100%;
+    padding:12px 16px;
+    font-size:14px;
+}
+
+}
+
+/* ===========================
+   Small Mobile
+=========================== */
+
+@media (max-width:380px){
+
+.userCard{
+    padding:10px;
+}
+
+.userCard_img{
+    width:45px;
+    height:45px;
+    min-width:45px;
+}
+
+.userInfo h2{
+    font-size:17px;
+}
+
+.userInfo p:last-child{
+    font-size:13px;
+}
+
+.status{
+    font-size:11px;
+}
+
+.searchInput{
+    font-size:13px;
+}
+
 }

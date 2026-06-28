@@ -1,130 +1,371 @@
-.container{
-    padding:1.5rem;
-    background:linear-gradient(180deg,#f7f9fc,#ffffff);
-    display:flex;
-    flex-direction:column;
-    gap:1.5rem;
-}
-.backDropContainer{
-  width:100%;
-  height:30vh;
-  background:url(https://static.vecteezy.com/system/resources/previews/054/896/186/non_2x/sky-blue-background-nature-abstract-cloud-texture-with-white-light-in-summer-winter-weather-with-cloudy-cartoon-sunny-day-sunlight-on-spring-with-copy-sapce-vector.jpg);
-  background-size:cover;
-  background-repeat:no-repeat;
-  position:relative;
-  border-radius:20px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.15);
-}
-.backdrop{
-    width:10em;
-    height:10em;
-    border-radius:50%;
-    object-fit:cover;
-    position:absolute;
-    bottom:-20%;
-    left:8%;
-    border:4px solid white;
-    box-shadow:0 4px 12px rgba(0,0,0,0.25);
-}
-.profileContainer_details{
-    padding-top:5rem;
-    background:white;
-    padding:2rem;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-}
-.card{
-    display:flex;
-    align-items:center;
-    gap:1.2rem;
-    background:white;
-    padding:0.8rem;
-    border-radius:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-    transition:0.3s;
+.container {
+  padding: 1.5rem;
+  background: #f3f2ef;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100vh;
 }
 
-.card:hover{
-    transform:translateY(-3px);
-}
-.card_profileConatiner{
-    display: flex;
+/* COVER SECTION */
 
-}
-.card_profileConatiner>img{
-    width: 3.4rem;
-    height: auto;
-    height: 3.4rem;
-    object-fit: cover;
-
-
-}
-.connectBtn{
-    padding:0.4rem 1rem;
-    background:#0a66c2;
-    border:none;
-    color:white;
-    border-radius:20px;
-    cursor:pointer;
-    font-weight:500;
-    transition:0.3s;
+.backDropContainer {
+  width: 100%;
+  height: 320px;
+  border-radius: 20px 20px 0 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
 }
 
-.connectBtn:hover{
-    background:#004182;
+.coverSection {
+  width: 100%;
+  height: 100%;
 }
-.connectedButton{
-    padding:0.4rem 1rem;
-    background:#e6f0ff;
-    border:1px solid #0a66c2;
-    color:#0a66c2;
-    border-radius:20px;
+
+.coverSection img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.workHistoryConatainer{
-    display: flex;
-    gap: 1.5rem;
-    padding-top: 1.4rem;
+
+/* PROFILE IMAGE */
+
+.backdrop,
+.profileImage {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #fff;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.backdrop {
+  position: absolute;
+  left: 40px;
+  bottom: -60px;
+  z-index: 2;
+}
+
+/* PROFILE DETAILS */
+
+.profileContainer_details {
+  background: #fff;
+  border-radius: 20px;
+  padding: 100px 30px 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.profileContainer_flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.profileContainer_flex h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.profileContainer_flex p {
+  margin: 0;
+  color: #666;
+}
+
+/* LINKEDIN STYLE HEADER */
+
+.profileHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
+  margin-top: -80px;
+  position: relative;
+  z-index: 10;
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.profileInfo h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.profileInfo p {
+  color: gray;
+  margin-top: 5px;
+}
+
+/* BIO */
+
+.bioBox {
+  background: #f7f9fc;
+  border: 1px solid #e5e5e5;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 20px 0;
+  line-height: 1.7;
+}
+
+/* BUTTONS */
+
+.connectBtn,
+.connectedButton {
+  padding: 10px 22px;
+  border-radius: 25px;
+  font-weight: 600;
+}
+
+.connectBtn {
+  background: #0a66c2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.connectBtn:hover {
+  background: #004182;
+}
+
+.connectedButton {
+  background: #eef4ff;
+  border: 1px solid #0a66c2;
+  color: #0a66c2;
+}
+
+/* SECTION CARD */
+
+.sectionCard,
+.workHistory {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.workHistory h4 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+/* ACTIVITY CARD */
+
+.activityCard {
+  padding: 15px;
+  border-bottom: 1px solid #ececec;
+}
+
+.postcard {
+  margin-top: 15px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #ececec;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card_profileConatiner img {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.card p {
+  margin: 0;
+}
+
+/* WORK HISTORY */
+
+.workHistoryConatainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.workHistoryCard,
+.workCard {
+  flex: 1;
+  min-width: 280px;
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #ececec;
+  background: #fff;
+  transition: 0.3s;
+}
+
+.workHistoryCard:hover,
+.workCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+.workHistoryCard p {
+  margin: 6px 0;
+}
+
+/* ========================= */
+/* LARGE DESKTOP */
+/* ========================= */
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1400px;
+    margin: auto;
+  }
+
+  .profileInfo h1 {
+    font-size: 2.4rem;
+  }
+}
+
+/* ========================= */
+/* LAPTOP */
+/* ========================= */
+
+@media (max-width: 1200px) {
+  .backDropContainer {
+    height: 280px;
+  }
+
+  .profileImage,
+  .backdrop {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+/* ========================= */
+/* TABLET */
+/* ========================= */
+
+@media (max-width: 992px) {
+  .profileHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -60px;
+  }
+
+  .profileContainer_flex {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .workHistoryConatainer {
+    flex-direction: column;
+  }
+
+  .workHistoryCard {
     width: 100%;
-    flex-wrap: wrap;
-
-
-}
-.workHistoryCard{
-    min-width:180px;
-    padding:1rem 2rem;
-    border-radius:12px;
-    background:white;
-    box-shadow:0 6px 16px rgba(0,0,0,0.12);
-    transition:0.3s;
+  }
 }
 
-.workHistoryCard:hover{
-    transform:translateY(-5px);
-}
-.profileContainer_flex{
-    display: flex;
-    gap: 0.7rem;
-}
-.bioBox{
-    background:#f9fafc;
-    border:1px solid #e0e0e0;
-    padding:0.7rem;
-    border-radius:8px;
-    margin-bottom:1rem;
-}
-@media only screen and (max-width:600px){
+/* ========================= */
+/* MOBILE */
+/* ========================= */
 
-.backdrop{
-    width:7em;
-    height:7em;
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .backDropContainer {
+    height: 200px;
+    border-radius: 15px;
+  }
+
+  .backdrop,
+  .profileImage {
+    width: 120px;
+    height: 120px;
+  }
+
+  .backdrop {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -50px;
+  }
+
+  .profileContainer_details {
+    padding: 80px 15px 20px;
+  }
+
+  .profileInfo h1 {
+    font-size: 1.5rem;
+  }
+
+  .profileContainer_flex h2 {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .card_profileConatiner img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .connectBtn,
+  .connectedButton {
+    width: 100%;
+  }
 }
 
-.workHistoryConatainer{
-    flex-direction:column;
-}
+/* ========================= */
+/* SMALL MOBILE */
+/* ========================= */
 
-.profileContainer_details{
-    padding:1.5rem;
-}
+@media (max-width: 480px) {
+  .backDropContainer {
+    height: 200px;
+  }
 
+  .backdrop,
+  .profileImage {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profileContainer_details {
+    padding-top: 70px;
+  }
+
+  .profileInfo h1 {
+    font-size: 1.3rem;
+  }
+
+  .sectionCard,
+  .workHistory {
+    padding: 15px;
+  }
+
+  .workHistoryCard,
+  .workCard {
+    min-width: 100%;
+  }
 }

@@ -15,8 +15,32 @@ import {
 
 import { getAllPosts } from "@/config/redux/action/postAction";
 
+
+
+
 export default function ViewProfilePage({ userProfile }) {
 
+
+
+const formatLastSeen = (date) => {
+
+  const now = new Date();
+  const lastSeen = new Date(date);
+
+  const diff =
+    Math.floor((now - lastSeen) / 1000);
+
+  if (diff < 60)
+    return `${diff} sec ago`;
+
+  if (diff < 3600)
+    return `${Math.floor(diff / 60)} min ago`;
+
+  if (diff < 86400)
+    return `${Math.floor(diff / 3600)} hr ago`;
+
+  return `${Math.floor(diff / 86400)} day ago`;
+};
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -25,7 +49,7 @@ export default function ViewProfilePage({ userProfile }) {
 
   const [userPosts, setUserPosts] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("none");
-
+  const [isMyProfile, setIsMyProfile] = useState(false);
   // 🚨 USER NOT FOUND SAFETY
   if (!userProfile) {
     return (
@@ -38,19 +62,16 @@ export default function ViewProfilePage({ userProfile }) {
   }
 
   // fetch posts + connections
-  const loadData = async () => {
+ const loadData = async () => {
+  await dispatch(getAllPosts());
+  await dispatch(getMyConnectionsRequest());
+  await dispatch(getConnectionRequest());
+};
 
-    const token = localStorage.getItem("token");
 
-    await dispatch(getAllPosts());
-    await dispatch(getMyConnectionsRequest({ token }));
-    await dispatch(getConnectionRequest({ token }));
-
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+useEffect(() => {
+  loadData();
+}, [dispatch]);
 
   // filter posts
   useEffect(() => {
@@ -66,50 +87,116 @@ export default function ViewProfilePage({ userProfile }) {
   }, [postReducer?.posts, router.query.username]);
 
   // connection status check
+ useEffect(() => {
+
+  const currentUserId =
+    authState?.profile?.userId?._id;
+
+  const connection =
+    authState?.connectionRequest?.find((c) => {
+
+      const senderId =
+        c?.userId?._id || c?.userId;
+
+      const receiverId =
+        c?.connectionId?._id || c?.connectionId;
+
+     return (
+  (
+    String(senderId) === String(currentUserId) &&
+    String(receiverId) === String(userProfile?.userId?._id)
+  ) ||
+  (
+    String(receiverId) === String(currentUserId) &&
+    String(senderId) === String(userProfile?.userId?._id)
+  )
+) && c?.status_accepted === null;
+    });
+
+  const acceptedConnection =
+  authState?.connections?.find((c) => {
+
+    const senderId =
+      c?.userId?._id || c?.userId;
+
+    const receiverId =
+      c?.connectionId?._id || c?.connectionId;
+
+    return (
+      (
+        String(senderId) === String(currentUserId) &&
+        String(receiverId) === String(userProfile?.userId?._id)
+      ) ||
+      (
+        String(receiverId) === String(currentUserId) &&
+        String(senderId) === String(userProfile?.userId?._id)
+      )
+    ) && c?.status_accepted === true;
+  });
+
+
+  if (acceptedConnection) {
+    setConnectionStatus("connected");
+  } else if (connection) {
+    setConnectionStatus("pending");
+  } else {
+    setConnectionStatus("none");
+  }
+
+console.log("CONNECTIONS =", authState.connections);
+console.log("REQUESTS =", authState.connectionRequest);
+console.log("ACCEPTED =", acceptedConnection);
+console.log("PENDING =", connection);
+
+}, [
+  authState.connections,
+  authState.connectionRequest,
+  authState.profile,
+  userProfile?.userId?._id
+]);
   useEffect(() => {
-
-    const sentConnection = authState?.connections?.find(
-      (c) => c?.connectionId?._id === userProfile?.userId?._id
-    );
-
-    const receivedConnection = authState?.connectionRequest?.find(
-      (c) => c?.userId?._id === userProfile?.userId?._id
-    );
-
-    const connection = sentConnection || receivedConnection;
-
-    if (!connection) {
-      setConnectionStatus("none");
-    } 
-    else if (connection.status_accepted === null) {
-      setConnectionStatus("pending");
-    } 
-    else if (connection.status_accepted === true) {
-      setConnectionStatus("connected");
-    }
-
-  }, [
-    authState.connections,
-    authState.connectionRequest,
+  if (
+    authState?.profile?.userId?._id &&
     userProfile?.userId?._id
-  ]);
+  ) {
+    setIsMyProfile(
+      authState.profile.userId._id === userProfile.userId._id
+    );
+  }
+}, [authState?.profile, userProfile]);
 
   // connect button
-  const handleConnect = async () => {
+const handleConnect = async () => {
+  try {
 
-    const token = localStorage.getItem("token");
-
-    await dispatch(
+    const result = await dispatch(
       sendConnectionRequest({
-        token,
         connectionId: userProfile.userId._id
       })
     );
 
-    await dispatch(getMyConnectionsRequest({ token }));
-    await dispatch(getConnectionRequest({ token }));
+    if (
+      result.type === "user/sendConnectionRequest/fulfilled"
+    ) {
+      setConnectionStatus("pending");
+      return;
+    }
 
-  };
+  } catch (error) {
+    console.log(error);
+  }
+};
+  console.log("PROFILE", userProfile);
+console.log("COVER", userProfile?.userId?.coverImage);
+console.log(
+  "ONLINE STATUS =",
+  userProfile?.userId?.isOnline
+);
+
+console.log(
+  "LAST SEEN =",
+  userProfile?.userId?.lastSeen
+);
 
   return (
 <UserLayout>
@@ -117,189 +204,202 @@ export default function ViewProfilePage({ userProfile }) {
 
 <div className={styles.container}>
 
-{/* COVER */}
-<div className={styles.backDropContainer}>
+{/* Cover */}
+
+  
+<div className={styles.coverSection}>
 <img
-className={styles.backdrop}
-src={`${BASE_URL}/uploads/${userProfile?.userId?.profilePicture || "default.jpg"}`}
-alt="profile"
+  src={userProfile?.userId?.coverImage || "/cover-placeholder.jpg"}
+  alt="cover"
+  style={{
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "12px",
+  }}
 />
 </div>
+  
 
-{/* PROFILE DETAILS */}
+{/* Profile Header */}
 
-<div className={styles.profileContainer_details}>
+<div className={styles.profileHeader}>
 
-<div className={styles.profileContainer_flex}>
+  <div className={styles.leftSection}>
 
-<div style={{display:"flex",gap:"1rem"}}>
-<h2>{userProfile?.userId?.name}</h2>
-<p style={{color:"grey"}}>
-@{userProfile?.userId?.username}
+ <img
+  className={styles.profileImage}
+src={
+  userProfile?.userId?.profilePicture ||
+  "/default.jpg"
+}
+  alt="profile"
+/>
+    <div className={styles.profileInfo}>
+      <h1>{userProfile?.userId?.name}</h1>
+
+      <p className={styles.username}>
+        @{userProfile?.userId?.username}
+      </p>
+
+      <p>
+  {!isMyProfile && (
+    <p>
+      {userProfile?.userId?.isOnline ? (
+        <span
+          style={{
+            color: "green",
+            fontWeight: "600"
+          }}
+        >
+          🟢 Active
+        </span>
+      ) : (
+        <span
+          style={{
+            color: "green"
+          }}
+        >
+          {
+            userProfile?.userId?.lastSeen
+              ? formatLastSeen(
+                  userProfile.userId.lastSeen
+                )
+              : "Offline"
+          }
+        </span>
+      )}
+    </p>
+  )}
+
 </p>
-</div>
 
-{/* CONNECT BUTTON */}
+      <p className={styles.bio}>
+        {userProfile?.bio}
+      </p>
+    </div>
 
-<div style={{display:"flex",gap:"1rem"}}>
+  </div>
 
-{connectionStatus === "connected" && (
-<button className={styles.connectedButton}>
-Connected
-</button>
-)}
+  <div className={styles.actionButtons}>
+    {connectionStatus === "connected" && (
+      <button className={styles.connectedButton}>
+        Connected
+      </button>
+    )}
 
-{connectionStatus === "pending" && (
-<button className={styles.connectedButton}>
-Pending
-</button>
-)}
+    {connectionStatus === "pending" && (
+      <button className={styles.connectedButton}>
+        Pending
+      </button>
+    )}
 
-{connectionStatus === "none" && (
-<button
-className={styles.connectBtn}
-onClick={handleConnect}
->
-Connect
-</button>
-)}
-
-{/* DOWNLOAD PROFILE */}
-
-<div
-onClick={async () => {
-
-const response = await clientServer.get(
-`/api/users/user/download_profile?id=${userProfile.userId._id}`
-);
-
-window.open(
-`${BASE_URL}/${response.data.message}`,
-"_blank"
-);
-
-}}
->
-
-<svg
-style={{width:"1.2em",cursor:"pointer"}}
-xmlns="http://www.w3.org/2000/svg"
-fill="none"
-viewBox="0 0 24 24"
-strokeWidth={1.5}
-stroke="currentColor"
->
-<path
-strokeLinecap="round"
-strokeLinejoin="round"
-d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-/>
-</svg>
+    {connectionStatus === "none" && !isMyProfile && (
+      <button
+        className={styles.connectBtn}
+        onClick={handleConnect}
+      >
+        Connect
+      </button>
+    )}
+  </div>
 
 </div>
 
+{/* About */}
+
+  <div className={styles.sectionCard}>
+    <h2>About</h2>
+    <p>{userProfile?.bio}</p>
+  </div>
+
+{/* Recent Activity */}
+
+<div className={styles.sectionCard}>
+  <h2>Recent Posts</h2>
+   {userPosts.length === 0 && (
+    <p>No posts yet</p>
+  )}
+
+  {userPosts.map((post) => (
+    <div
+      key={post._id}
+      className={styles.activityCard}
+    >
+
+      {post.media && (
+        post.fileType?.startsWith("video") ? (
+          <video
+            controls
+            style={{
+              width: "100%",
+              borderRadius: "10px",
+              marginBottom: "10px"
+            }}
+          >
+            <source
+              src={post.media}
+              type={post.fileType}
+            />
+          </video>
+        ) : (
+          <img
+            src={post.media}
+            alt="post"
+            style={{
+              width: "100%",
+              borderRadius: "10px",
+              marginBottom: "10px"
+            }}
+          />
+        )
+      )}
+
+      <p>{post.body}</p>
+      
+
+    </div>
+  ))}
 </div>
 
+{/* Work History */}
 
+<div className={styles.sectionCard}>
+  <h2>Work History</h2>
 
-</div>
-
-{/* POSTS */}
-
-<div style={{flex:"0.2rem"}}>
-  <div className={styles.bioBox}
-style={{
-color:"black",
-background:"snow",
-border:"1px solid silver",
-borderRadius:"10px",
-padding:"8px",
-flexDirection:"column",
-margin:"10px"
-
-}}
->
-<b>{userProfile?.bio}</b>
-</div>
-
-<h2>Recent Activity</h2>
-
-{userPosts.map((post)=>(
-<div key={post._id} className={styles.postcard}>
-
-<div className={styles.card}>
-
-<div className={styles.card_profileConatiner}>
-
-{post.media !== "" ? (
-<img
-src={`${BASE_URL}/uploads/${post.media}`}
-alt="post"
-/>
+ {userProfile?.pastWork?.length > 0 ? (
+  userProfile.pastWork.map((work, index) => (
+    <div key={index} className={styles.workCard}>
+      <h4>{work.company}</h4>
+      <p>{work.position}</p>
+      <p>{work.duration}</p>
+    </div>
+  ))
 ) : (
-<div style={{width:"3.4rem",height:"3.4rem"}}/>
+  <p>No work history added</p>
 )}
-
 </div>
 
-<p>{post.body}</p>
+{/* Education */}
 
-</div>
+ <div className={styles.sectionCard}>
+  <h2>Education</h2>
 
-</div>
-))}
-
-</div>
-
-</div>
-
-{/* WORK HISTORY */}
-
-<div className={styles.workHistory}>
-
-<h4>Work History</h4>
-
-<div className={styles.workHistoryConatainer}>
-
-{userProfile?.pastWork?.map((work,index)=>(
-<div key={index} className={styles.workHistoryCard}>
-<p style={{fontWeight:"bold"}}>
-{work.company} - {work.position}
-</p>
-<p>{work.years}</p>
-</div>
-))}
-
+ {userProfile?.education?.length > 0 ? (
+  userProfile.education.map((edu, index) => (
+    <div key={index} className={styles.workCard}>
+      <h4>{edu.school}</h4>
+      <p>{edu.degree}</p>
+      <p>{edu.fieldOfStudy}</p>
+    </div>
+  ))
+) : (
+  <p>No education added</p>
+)}
 </div>
 
 </div>
 
-{/* EDUCATION */}
-
-<div className={styles.workHistory}>
-
-<h4>Education</h4>
-
-<div className={styles.workHistoryConatainer}>
-
-{userProfile?.education?.map((edu,index)=>(
-<div key={index} className={styles.workHistoryCard}>
-
-<p style={{fontWeight:"bold"}}>
-{edu.school}
-</p>
-
-<p>{edu.degree}</p>
-
-<p>{edu.fieldOfStudy}</p>
-
-</div>
-))}
-
-</div>
-
-</div>
-</div>
 
 </DashboardLayout>
 </UserLayout>

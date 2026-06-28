@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import axios from "axios";
 
 export const convertUserDataTOPDF = async (userData) => {
 
@@ -16,15 +17,7 @@ export const convertUserDataTOPDF = async (userData) => {
     doc.pipe(stream);
 
     
-const imagePath = path.resolve("uploads", userData?.userId?.profilePicture);
 
-if (fs.existsSync(imagePath)) {
-  try {
-    doc.image(imagePath, { width: 120 });
-  } catch (err) {
-    console.log("Image skipped:", err.message);
-  }
-}
 
     doc.fontSize(14).text(`Name: ${userData?.userId?.name || ""}`);
     doc.text(`Username: ${userData?.userId?.username || ""}`);
@@ -57,11 +50,22 @@ if (Array.isArray(userData?.education)) {
 
     doc.end();
 
-    stream.on("finish", () => {
-      resolve(fileName);
-    });
+    stream.on("finish", async () => {
+      console.log(
+  "LOCAL PDF SIZE:",
+  fs.statSync(outputPath).size
+);
+  try {
 
-    stream.on("error", reject);
+resolve(outputPath);
+
+  } catch (error) {
+    console.log("CLOUDINARY PDF ERROR:", error);
+    reject(error);
+  }
+});
+
+stream.on("error", reject);
 
   });
 

@@ -10,20 +10,14 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
 const dispatch = useDispatch();
 
+
 const authState = useSelector((state) => state.auth);
 
 
 useEffect(() => {
   if (typeof window === "undefined") return;
 
-  const token = localStorage.getItem("token");
 
-  if (!token) {
-    router.replace("/login");
-    return;
-  }
-
-  dispatch(setTokenIsThere());
   dispatch(getAllPosts());
   dispatch(getAboutUser());
   dispatch(getAllUsers());
@@ -31,10 +25,16 @@ useEffect(() => {
 
 
 
-}, [dispatch, router]);
- useEffect(() => {
-  dispatch(getAllPosts());
 }, [dispatch]);
+
+useEffect(() => {
+  if (
+    authState.message === "Please Login"
+  ) {
+    router.replace("/login");
+  }
+}, [authState.message, router]);
+
 
 if (!authState.profileFetched) {
   return (
@@ -44,9 +44,37 @@ if (!authState.profileFetched) {
   );
 }
 
+const currentUserId = authState.profile?.userId?._id;
+const currentUserBio = authState.profile?.bio?.toLowerCase() || "";
+
+const relatedUsers = authState.all_users.filter((user) => {
+  // स्वतःला exclude कर
+  if (user._id === currentUserId) return false;
+
+  // bio नसल्यास skip
+  if (!user.bio) return false;
+
+  const userBio = user.bio.toLowerCase();
+
+  return (
+    (currentUserBio.includes("mern") && userBio.includes("mern")) ||
+    (currentUserBio.includes("react") && userBio.includes("react")) ||
+    (currentUserBio.includes("node") && userBio.includes("node")) ||
+    (currentUserBio.includes("mongodb") && userBio.includes("mongodb")) ||
+    (currentUserBio.includes("java") && userBio.includes("java")) ||
+    (currentUserBio.includes("python") && userBio.includes("python"))
+  );
+});
+
+console.log("Current User Bio:", currentUserBio);
+console.log("All Users:", authState.all_users);
+
+console.log("FIRST USER", authState.all_users[0]);
 
   return (
     <div className={styles.container}>
+
+
       <div className={styles.homeContainer}>
 
       
@@ -90,14 +118,48 @@ if (!authState.profileFetched) {
         </div>
 
 <div className={styles.homeContainer_extraContainer}>
-  <div><b>Top Profiles</b></div>
-
-{authState.all_users.map((user) => (
-  <div key={user._id}>
-    <div className={styles.topProfile}><p>{user.name}</p></div>
+  <div className={styles.topProfilesHeader}>
+    <h3>Top Profiles</h3>
   </div>
-))}</div>
-      </div>
+
+ {relatedUsers?.slice(0, 5).map((user) => (
+  <div
+    key={user._id}
+    className={styles.topProfileCard}
+    onClick={() => router.push(`/profile/${user.username}`)}
+  >
+   <img style={{borderRadius:"50%", height:"70px"}}
+  src={
+    user.profilePicture
+      ? `http://localhost:5000/uploads/${user.profilePicture}`
+      : "/profile.png"
+  }
+  alt={user.name}
+/>
+   
+
+    <div className={styles.topProfileInfo}>
+      <h4>{user.name}</h4>
+      <p>{user.bio || "Software Developer"}</p>
+    </div>
+
+  <button
+  className={styles.profileButton}
+  onClick={(e) => {
+    e.stopPropagation();
+    console.log("USERNAME:", user.username);
+   router.push(`/view_profile/${user.username}`);
+  }}
+>
+  View
+</button>
+    
+  </div>
+
+))}
+</div>
+</div>
+
       <div className={styles.mobileNavBar}>
 
           <div  onClick={() => router.push("/dashboard")} className={styles.singleNavItemHolder_mobileView}>

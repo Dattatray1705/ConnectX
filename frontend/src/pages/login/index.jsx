@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import styles from "./style.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
-import { loginUser, registerUser } from "@/config/redux/action/authAction";
+import { loginUser, registerUser , getAboutUser,} from "@/config/redux/action/authAction";
 import { emptyMessage } from "@/config/redux/reducer/authReducer";
 
 export default function Login() {
@@ -19,25 +19,41 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
 
-   useEffect(() => {
-    if (authState.loggedIn && !redirected.current) {
-      redirected.current = true;
-      router.replace("/dashboard");
-    }
-  }, [authState.loggedIn]);
+  useEffect(() => {
+  if (
+    (authState.loggedIn || authState.profile) &&
+    !redirected.current
+  ) {
+    redirected.current = true;
+    router.replace("/dashboard");
+  }
+}, [authState.loggedIn, authState.profile, router]);
 
   /* ✅ Clear message on switch */
   useEffect(() => {
     dispatch(emptyMessage());
   }, [isLoginMethod]);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      alert("Email and Password required");
-      return;
-    }
-    dispatch(loginUser({ email, password }));
-  };
+const handleLogin = async () => {
+  if (!email || !password) {
+    alert("Email and Password required");
+    return;
+  }
+
+  const result = await dispatch(
+    loginUser({
+      email,
+      password,
+    })
+  );
+
+  if (loginUser.fulfilled.match(result)) {
+    await dispatch(getAboutUser());
+  }
+};
+
+
+
 
   const handleRegister = () => {
     if (!username || !name || !email || !password) {
@@ -48,89 +64,164 @@ export default function Login() {
   };
 
   return (
-    <UserLayout>
-      <h4
-        style={{ cursor: "pointer" }}
-        onClick={() => router.push("/")}
-      >
-        ← Go Back
-      </h4>
+   <UserLayout>
+  <div className={styles.loginPage}>
 
-      <div className={styles.container}>
-        <div className={styles.cardContainer}>
-          {/* LEFT */}
-          <div className={styles.cardContainer_left}>
-            <p className={styles.cardleft_heading}>
-              {isLoginMethod ? "Sign In" : "Sign Up"}
-            </p>
+    
 
-            {authState.message && (
-              <p style={{ color: authState.isError ? "red" : "green" }}>
-                {authState.message}
-              </p>
-            )}
+    <div className={styles.cardContainer}>
+    
 
-            <div className={styles.inputContainer}>
-              {!isLoginMethod && (
-                <div className={styles.inputRow}>
-                  <input
-                    className={styles.inputField}
-                    placeholder="Username"
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                  <input
-                    className={styles.inputField}
-                    placeholder="Name"
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-              )}
+      {/* LEFT SIDE */}
+      <div className={styles.cardContainer_left}>
 
+        <div>
+          <h1 className={styles.heading}>
+            {isLoginMethod
+              ? "Welcome Back 👋"
+              : "Create Account 🚀"}
+          </h1>
+
+          <p className={styles.subHeading}>
+            {isLoginMethod
+              ? "Login and continue building your professional network."
+              : "Join ConnectX and start connecting with professionals."}
+          </p>
+        </div>
+
+        {authState.message && (
+          <div
+            className={
+              authState.isError
+                ? styles.errorMessage
+                : styles.successMessage
+            }
+          >
+            {authState.message}
+          </div>
+        )}
+
+        <div className={styles.inputContainer}>
+
+          {!isLoginMethod && (
+            <div className={styles.inputRow}>
               <input
                 className={styles.inputField}
-                type="email"
-                placeholder="example@gmail.com"
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Username"
+                onChange={(e) => setUsername(e.target.value)}
               />
 
               <input
                 className={styles.inputField}
-                type="password"
-                placeholder="Password"
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Full Name"
+                onChange={(e) => setName(e.target.value)}
               />
-
-              <button
-                disabled={authState.isLoading}
-                onClick={isLoginMethod ? handleLogin : handleRegister}
-                className={styles.buttonWithOutline}
-              >
-                {authState.isLoading
-                  ? "Please wait..."
-                  : isLoginMethod
-                  ? "Sign In"
-                  : "Sign Up"}
-              </button>
             </div>
-          </div>
+          )}
 
-          {/* RIGHT */}
-          <div className={styles.cardContainer_right}>
-            <p>
-              {isLoginMethod
-                ? "Don't have an account?"
-                : "Already have an account?"}
-            </p>
+          <input
+            className={styles.inputField}
+            type="email"
+            placeholder="Email Address"
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-            <button
-              onClick={() => setIsLoginMethod(!isLoginMethod)}
-              className={styles.buttonWithOutline}
-            >
-              {isLoginMethod ? "Sign Up" : "Sign In"}
-            </button>
-          </div>
+          <input
+            className={styles.inputField}
+            type="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+  
+
+{isLoginMethod && (
+  <div
+    style={{
+      textAlign: "right",
+      marginTop: "10px",
+      marginBottom: "15px",
+    }}
+  >
+    <span
+      style={{
+        cursor: "pointer",
+        color: "#3366ff",
+        fontSize: "14px",
+      }}
+      onClick={() =>
+        router.push("/forgot-password")
+      }
+    >
+      Forgot Password?
+    </span>
+  </div>
+)}
+
+
+
+
+
+
+
+
+
+
+
+          <button
+            disabled={authState.isLoading}
+            onClick={
+              isLoginMethod
+                ? handleLogin
+                : handleRegister
+            }
+            className={styles.submitBtn}
+          >
+            {authState.isLoading
+              ? "Please wait..."
+              : isLoginMethod
+              ? "Sign In"
+              : "Create Account"}
+          </button>
+
         </div>
       </div>
-    </UserLayout>
+
+      {/* RIGHT SIDE */}
+      <div className={styles.cardContainer_right}>
+
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+          alt="network"
+          className={styles.illustration}
+        />
+
+        <h2>
+          {isLoginMethod
+            ? "New Here?"
+            : "Already Registered?"}
+        </h2>
+
+        <p>
+          Connect with developers,
+          students and professionals.
+        </p>
+
+        <button
+          className={styles.switchBtn}
+          onClick={() =>
+            setIsLoginMethod(!isLoginMethod)
+          }
+        >
+          {isLoginMethod
+            ? "Create Account"
+            : "Sign In"}
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</UserLayout>
   );
 }

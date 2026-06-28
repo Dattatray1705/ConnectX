@@ -11,41 +11,59 @@ import { getAllPosts } from "@/config/redux/action/postAction";
 import { deletePost } from "@/config/redux/action/postAction";
 import { incrementPostLike } from "@/config/redux/action/postAction";
 import { resetPostId } from "@/config/redux/reducer/postReducer";
+import { getNotifications } from "@/config/redux/action/notificationAction";
+
+
+
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { user, profile, justLoggedIn } = useSelector((state) => state.auth);
 
+  const { notifications } = useSelector(
+  (state) => state.notification
+);
+
+const unreadCount =
+  notifications?.filter(
+    item => !item.isRead
+  ).length || 0;
+
+console.log(
+  "UNREAD COUNT =",
+  unreadCount
+);
+
+console.log("NOTIFICATIONS =", notifications);
+
   const [showLoader, setShowLoader] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
   const [postContent , setPostContent]= useState("")
   const [fileContent , setFileContent ]= useState()
   const postState = useSelector((state)=>state.posts)  // ✅ get post state
+  console.log("ALL POSTS =", postState.posts);
   const [commentText, setCommentText] = useState("");
-
-
+console.log("FIRST POST =", postState.posts[0]);
 
 const handleUpload = async () => {
-  console.log("UPLOAD CLICKED");
-
-  await dispatch(
-    createPost({ file: fileContent, body: postContent })
+  const result = await dispatch(
+    createPost({
+      file: fileContent,
+      body: postContent,
+    })
   );
+
+  console.log("UPLOAD RESULT =", result);
+  if (createPost.fulfilled.match(result)) {
+  await dispatch(getAllPosts());
+}
+
 
   setPostContent("");
   setFileContent(null);
-   // ✅ Refresh posts after creating a new one
 };
 
 
 
 
-
-  // ✅ Client-only localStorage access
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHasToken(!!localStorage.getItem("token"));
-    }
-  }, []);
 
   // ⏱ short loader after login
   useEffect(() => {
@@ -60,17 +78,23 @@ const handleUpload = async () => {
   }, [justLoggedIn, dispatch]);
 
   // 🔄 Rehydrate user after refresh
-  useEffect(() => {
-    if (hasToken && !user) {
-      dispatch(getAboutUser());
-    }
-  }, [hasToken, user, dispatch]);
+ useEffect(() => {
+  if (!user) {
+    dispatch(getAboutUser());
+  }
+}, [user, dispatch]);
 // fetch posts when dashboard loads
+
+
 useEffect(() => {
   dispatch(getAllPosts());
+  dispatch(getNotifications());
 }, [dispatch]);
+
+
+
   // Not logged in
-  if (!user && !hasToken) {
+if (!user && !profile) {
     return (
       <UserLayout>
         <DashboardLayout>
@@ -95,16 +119,17 @@ useEffect(() => {
   return (
   <UserLayout>
   <DashboardLayout>
+
     <div className={styles.scrollComponent}>
       <div className={styles.wrapper}>
          <div className={styles.createPostcontainer}>
         {profile?.userId?.profilePicture && (
           <>
-            <img className={styles.userProfile}
-              src={`${BASE_URL}/uploads/${profile.userId.profilePicture}`}
-              alt="profile"
-              
-            />
+         <img
+  className={styles.userProfile}
+  src={profile?.userId?.profilePicture || "/default.jpg"}
+  alt="profile"
+/>
 
             <textarea onChange={(e)=>setPostContent(e.target.value)} value={postContent} className={styles.textarea} name="text"  placeholder={"What's in your mind?"}/>
 
@@ -129,18 +154,29 @@ useEffect(() => {
           </>
         )}
         <input onChange={(e)=>setFileContent(e.target.files[0])} type="file" hidden  id="fileUpload"/>
-        {postContent.length>0 && <div onClick={handleUpload} className={styles.uploadButton}>post</div>}
+       {(postContent.length > 0 || fileContent) && (
+  <div onClick={handleUpload} className={styles.uploadButton}>
+    Post
+  </div>
+)}
       </div>
         
 
     <div className={styles.postsContainer}>  
   {postState.posts.map((post) => {
+    console.log(post);
         if (!post?.userId) return null; // skip if userId is missing.
     return (
       <div key={post._id} className={styles.singleCard}>
+
+
         <div className={styles.singleCard_profileContainer}>
-          <img className={styles.userProfile} src={`${BASE_URL}/uploads/${post.userId.profilePicture}`} alt="profile" />
-        <div>
+<img
+  className={styles.userProfile}
+  src={post?.userId?.profilePicture || "/default.jpg"}
+  alt="profile"
+/>        <div>
+
           <div style={{ display: "flex",  gap: "1.2rem" ,justifyContent:"space-between",width:"100%"}}>
               <p style={{fontWeight:"bold"}}>{post.userId.name}</p>
         {post?.userId?._id?.toString() === profile?.userId?._id?.toString() && ( // only show delete icon if the post belongs to the logged-in user.
@@ -160,22 +196,46 @@ useEffect(() => {
           <p style={{color:"gray"}}>@{post.userId.username}</p>
           <p style={{paddingTop:"1.5rem"}}>{post.body}</p>
        
-          <div className={styles.singleCard_image}>
 
- {post.media !== "" ? (
-  <img src={`${BASE_URL}/uploads/${post.media}`} alt="post image" />
-) : null}
-          </div>
+          <div className={styles.singleCard_image}>
+            
+  {post?.media &&
+    (post?.fileType?.startsWith("video") ? (
+      <video controls width="100%">
+        <source src={post.media} type={post.fileType} />
+      </video>
+    ) : (
+      <img src={post.media} alt="post media" />
+    ))}
+</div>
+
+
+
 <div className={styles.optionsContainer}>
   {/* Like */}
-  <div onClick={async ()=>{
-    await dispatch(incrementPostLike({post_id: post._id}))
-    dispatch(getAllPosts())
-  }}className={styles.singleOption_optionsConatiner}>
+ <div
+onClick={async ()=>{
+
+   const result = await dispatch(
+      incrementPostLike({
+         post_id: post._id
+      })
+   );
+
+   if(incrementPostLike.fulfilled.match(result)){
+      dispatch(getAllPosts());
+   }else{
+      alert(result.payload);
+   }
+
+}}className={styles.singleOption_optionsConatiner}>
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
   <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
 </svg>
-<p>{post.likes}</p>
+<p>{post.likes?.length || 0}</p>
+  
+
+
   </div>
 {/* Comment */}
   <div onClick={()=>{
@@ -185,6 +245,7 @@ useEffect(() => {
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
   <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
 </svg>
+<p>{post.commentsCount || 0}</p>
 
   </div>
 
@@ -233,40 +294,41 @@ useEffect(() => {
 
 {postState?.comments?.length === 0 && (
   <h2>No comments yet</h2>
+  
 )}
+<h2>Comments ({postState.comments.length})</h2>
 
-{postState?.comments?.length !== 0 && (
-  <div>
-    {postState.comments.map((postComment) => {
-      return (
-        <div key={postComment._id} className={styles.singleComment}>
-          
-          <div className={styles.singleComment_profileContainer}>
-              <img
-              src={`${BASE_URL}/uploads/${postComment.userId.profilePicture}`}
-              alt=""
-            />
-            <div>
-              <p style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                {postComment.userId.name}
-              </p>
-              <p>@{postComment.userId.username}</p>
-            </div>
-          </div>
+<div className={styles.commentsList}>
+  {postState?.comments?.length === 0 ? (
+    <h3>No comments yet</h3>
+  ) : (
+postState.comments.map((postComment) => (
+  <div key={postComment._id} className={styles.commentBox}>
+    <p
+      style={{
+        color: "gray",
+        fontSize: "14px",
+        margin: 0,
+      }}
+    >
+      @{postComment.userId?.username}
+    </p>
 
-          <p>{postComment.body}</p>
-
-        </div>
-      );
-    })}
+    <p style={{ marginTop: "5px" }}>
+      {postComment.body}
+    </p>
   </div>
-)}
+))
+  )}
+</div>
 <div className={styles.postCommentContainer}>
   <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment..." />
   <div  onClick={
     async () => {
-      await dispatch(postComment({ post_id: postState.postId, comment: commentText }));
+      await dispatch(postComment({ post_id: postState.postId, comment: commentText ,}));
+        setCommentText(""); // textbox clear
       await dispatch(getAllComments({ post_id: postState.postId }));
+      await dispatch(getAllPosts());
    } }className={styles.postCommentContainer_commentBtn}>
     <p>Comment</p>
   </div>
