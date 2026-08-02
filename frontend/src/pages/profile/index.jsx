@@ -43,16 +43,18 @@ useEffect(() => {
 useEffect(() => {
   console.log("POSTS CHANGED =", posts?.length);
 }, [posts]);
-const [userProfile,setUserProfile] = useState({
-  userId:{
-    name:"",
-    username:"",
-    email:"",
-    profilePicture:""
+const [userProfile, setUserProfile] = useState({
+  userId: {
+    name: "",
+    username: "",
+    email: "",
+    profilePicture: "",
   },
-  bio:"",
-  pastWork:[]
-})
+  bio: "",
+  currentPost: "",
+  pastWork: [],
+  education: [],
+});
 
 const[isModalOpen ,setIsModalOpen] = useState(false);
 const [inputData,setInputData] =useState({company:'',position:'',years:''})
