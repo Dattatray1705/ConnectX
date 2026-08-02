@@ -114,6 +114,12 @@ export const sendOTP = async (req, res) => {
 
     const { email } = req.body;
 
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -136,7 +142,12 @@ export const sendOTP = async (req, res) => {
     console.log("3. OTP Saved");
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -144,10 +155,6 @@ export const sendOTP = async (req, res) => {
     });
 
     console.log("4. Transport Created");
-
-    await transporter.verify();
-
-    console.log("5. SMTP Verified");
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -161,7 +168,7 @@ export const sendOTP = async (req, res) => {
       `,
     });
 
-    console.log("6. Email Sent");
+    console.log("5. Email Sent");
 
     return res.status(200).json({
       success: true,
@@ -169,14 +176,13 @@ export const sendOTP = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("SEND OTP ERROR:", error);
 
     return res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 
 
