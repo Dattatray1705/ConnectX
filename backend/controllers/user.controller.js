@@ -115,6 +115,13 @@ export const sendOTP = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     console.log("2. User Found");
 
     const otp = Math.floor(
@@ -125,6 +132,7 @@ export const sendOTP = async (req, res) => {
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
 
     await user.save();
+
     console.log("3. OTP Saved");
 
     const transporter = nodemailer.createTransport({
@@ -138,13 +146,19 @@ export const sendOTP = async (req, res) => {
     console.log("4. Transport Created");
 
     await transporter.verify();
+
     console.log("5. SMTP Verified");
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "ConnectX Password Reset OTP",
-      html: `<h1>${otp}</h1>`,
+      html: `
+        <h2>Password Reset</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>Valid for 5 minutes</p>
+      `,
     });
 
     console.log("6. Email Sent");
@@ -155,14 +169,13 @@ export const sendOTP = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("SEND OTP ERROR:", error);
+    console.error(error);
 
     return res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 
 
