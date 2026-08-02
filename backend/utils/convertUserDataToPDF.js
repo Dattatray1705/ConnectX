@@ -4,7 +4,7 @@ import path from "path";
 import crypto from "crypto";
 import axios from "axios";
 
-export const convertUserDataTOPDF = async (userData) => {
+export const convertUserDataToPDF = async (userData) => {
 
   return new Promise((resolve, reject) => {
 
