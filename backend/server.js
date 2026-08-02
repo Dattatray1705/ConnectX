@@ -13,7 +13,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://YOUR_PROJECT.vercel.app",
+  "https://connect-x-snowy.vercel.app",
 ];
 
 app.use(
