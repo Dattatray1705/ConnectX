@@ -110,8 +110,6 @@ return res.json({
 
 export const sendOTP = async (req, res) => {
   try {
-    console.log("1. API Called");
-
     const { email } = req.body;
 
     if (!email) {
@@ -128,68 +126,35 @@ export const sendOTP = async (req, res) => {
       });
     }
 
-    console.log("2. User Found");
-
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     user.resetOTP = otp;
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
 
     await user.save();
 
-    console.log("3. OTP Saved");
-
-    console.log("BREVO_USER:", process.env.BREVO_USER);
-    console.log(
-      "BREVO_SMTP_KEY:",
-      process.env.BREVO_SMTP_KEY ? "FOUND" : "NOT FOUND"
-    );
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_USER,
-        pass: process.env.BREVO_SMTP_KEY,
-      },
-    });
-
-    console.log("4. Transport Created");
-
-    await transporter.verify();
-
-    console.log("SMTP Connected");
+    const transporter =
+      nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
     await transporter.sendMail({
-      from: `"ConnectX" <${process.env.BREVO_USER}>`,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "ConnectX Password Reset OTP",
       html: `
-        <div style="font-family:Arial,sans-serif;padding:20px">
-          <h2 style="color:#2563eb;">ConnectX Password Reset</h2>
-
-          <p>Hello,</p>
-
-          <p>Your password reset OTP is:</p>
-
-          <h1 style="letter-spacing:6px;color:#16a34a;">
-            ${otp}
-          </h1>
-
-          <p>This OTP is valid for <b>5 minutes</b>.</p>
-
-          <p>If you didn't request a password reset, please ignore this email.</p>
-
-          <br>
-
-          <p>Regards,<br><b>ConnectX Team</b></p>
-        </div>
+        <h2>Password Reset</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>Valid for 5 minutes</p>
       `,
     });
-
-    console.log("5. Email Sent");
 
     return res.status(200).json({
       success: true,
@@ -197,14 +162,15 @@ export const sendOTP = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("SEND OTP ERROR:", error);
 
     return res.status(500).json({
-      success: false,
       message: error.message,
     });
   }
 };
+
+
+
 
 
 export const uploadProfilePicture = async (req ,res)=>{
@@ -738,31 +704,40 @@ export const deleteAccount = async (req, res) => {
 };
 
 
-export const logout = async (req, res) => {
+export const logout = async (
+  req,
+  res
+) => {
+
   try {
-    const user = await User.findById(req.userId);
+
+    const user = await User.findById(
+      req.userId
+    );
 
     if (user) {
+
       user.isOnline = false;
-      user.lastSeen = new Date();
+
+      user.lastSeen =
+        new Date();
+
       await user.save();
     }
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
+    res.clearCookie("token");
 
     return res.json({
       success: true,
-      message: "Logout successful",
+      message: "Logout successful"
     });
 
   } catch (error) {
+
     return res.status(500).json({
-      message: error.message,
+      message: error.message
     });
+
   }
 };
 
