@@ -116,6 +116,7 @@ export const sendOTP = async (req, res) => {
 
     if (!email) {
       return res.status(400).json({
+        success: false,
         message: "Email is required",
       });
     }
@@ -124,12 +125,14 @@ export const sendOTP = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
 
     console.log("2. User Found");
 
+    // Generate 6-digit OTP
     const otp = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
@@ -142,33 +145,49 @@ export const sendOTP = async (req, res) => {
     console.log("3. OTP Saved");
 
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     console.log("4. Transport Created");
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"ConnectX" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "ConnectX Password Reset OTP",
       html: `
-        <h2>Password Reset</h2>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        <p>Valid for 5 minutes</p>
+        <div style="font-family:Arial,sans-serif">
+          <h2>ConnectX Password Reset</h2>
+          <p>Hello,</p>
+          <p>Your OTP for resetting your password is:</p>
+
+          <h1 style="
+            color:#2563eb;
+            letter-spacing:5px;
+            font-size:36px;
+          ">
+            ${otp}
+          </h1>
+
+          <p>This OTP is valid for <b>5 minutes</b>.</p>
+
+          <p>If you did not request this, please ignore this email.</p>
+
+          <br/>
+
+          <p>Thanks,</p>
+          <p><b>ConnectX Team</b></p>
+        </div>
       `,
     });
 
-    console.log("5. Email Sent");
+    console.log("5. Email Sent Successfully");
 
     return res.status(200).json({
       success: true,
@@ -179,11 +198,11 @@ export const sendOTP = async (req, res) => {
     console.error("SEND OTP ERROR:", error);
 
     return res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
 };
-
 
 
 export const uploadProfilePicture = async (req ,res)=>{
