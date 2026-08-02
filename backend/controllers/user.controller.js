@@ -162,6 +162,9 @@ requireTLS: true,
 
     console.log("4. Transport Created");
 
+    await transporter.verify();
+    console.log("SMTP Connected");
+
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
