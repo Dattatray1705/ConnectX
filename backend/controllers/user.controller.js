@@ -140,11 +140,17 @@ export const sendOTP = async (req, res) => {
     await user.save();
 
     console.log("3. OTP Saved");
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log(
+  "EMAIL_PASS:",
+  process.env.EMAIL_PASS ? "FOUND" : "NOT FOUND"
+);
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+ port: 587,
+secure: false,
+requireTLS: true,
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000,
