@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import fs from "fs";
 import Notification from "../models/notification.model.js";
-import { convertUserDataTOPDF } from "../utils/convertUserDataToPDF.js";
+import { convertUserDataToPDF } from "../utils/convertUserDataToPDF.js";
 import nodemailer from "nodemailer";
 
 
