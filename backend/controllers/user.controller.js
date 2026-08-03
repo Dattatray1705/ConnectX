@@ -149,9 +149,13 @@ export const sendOTP = async (req, res) => {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
+        connectionTimeout: 10000, // 10 seconds
+        socketTimeout: 10000,
       });
 
     console.log("6. Transport Created");
+    await transporter.verify();
+    console.log("SMTP Connected");
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
