@@ -156,22 +156,26 @@ export const increment_like = async (req, res) => {
         message: "Post not found"
       });
     }
+ // Always work with an array
+const likes = Array.isArray(post.likes) ? post.likes : [];
 
-    // Check if this user already liked the post
-   const alreadyLiked = post.likes.some(
-    (id) => id.toString() === userId
+// Check if already liked
+const alreadyLiked = likes.some(
+  (id) => id.toString() === userId.toString()
 );
 
 if (alreadyLiked) {
-    return res.status(400).json({
-        message: "You already liked this post"
-    });
+  return res.status(400).json({
+    message: "You already liked this post",
+  });
 }
 
-    // Add the user's ID
-    post.likes.push(userId);
+// Add like
+likes.push(userId);
 
-    await post.save();
+post.likes = likes;
+
+await post.save();
 
     return res.status(200).json({
       message: "Post liked successfully",
