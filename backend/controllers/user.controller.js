@@ -142,32 +142,33 @@ export const sendOTP = async (req, res) => {
     await user.save();
     console.log("5. User Saved");
 
-    const transporter =
-      nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        connectionTimeout: 10000, // 10 seconds
-        socketTimeout: 10000,
-      });
+  const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_SMTP_KEY,
+  },
+});
 
     console.log("6. Transport Created");
     await transporter.verify();
     console.log("SMTP Connected");
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "ConnectX Password Reset OTP",
-      html: `
-        <h2>Password Reset</h2>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        <p>Valid for 5 minutes</p>
-      `,
-    });
+await transporter.sendMail({
+  from: process.env.BREVO_USER,
+  to: email,
+  subject: "ConnectX Password Reset OTP",
+  html: `
+    <h2>Password Reset</h2>
+    <p>Your OTP is:</p>
+    <h1>${otp}</h1>
+    <p>This OTP is valid for 5 minutes.</p>
+  `,
+});
+
+console.log("Email Sent Successfully");
 
     return res.status(200).json({
       success: true,
