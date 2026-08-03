@@ -725,7 +725,11 @@ export const logout = async (
       await user.save();
     }
 
-    res.clearCookie("token");
+  res.clearCookie("token", {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+});
 
     return res.json({
       success: true,

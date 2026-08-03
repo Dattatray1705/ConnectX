@@ -411,7 +411,7 @@ export async function getServerSideProps(context) {
   try {
 
     const request = await clientServer.get(
-      "http://localhost:5000/api/users/get_User_Profile_And_User_Based_On_Username",
+      "https://connectx-backend-888g.onrender.com/api/users/get_User_Profile_And_User_Based_On_Username?username=YOUR_USERNAME",
       {
         params:{
           username: context.query.username
