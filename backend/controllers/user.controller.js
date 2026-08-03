@@ -110,7 +110,9 @@ return res.json({
 
 export const sendOTP = async (req, res) => {
   try {
+    console.log("1. API Called");
     const { email } = req.body;
+    console.log("2. Email:", email);
 
     if (!email) {
       return res.status(400).json({
@@ -119,6 +121,7 @@ export const sendOTP = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+      console.log("3. User Found:", !!user);
 
     if (!user) {
       return res.status(404).json({
@@ -129,11 +132,15 @@ export const sendOTP = async (req, res) => {
     const otp = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
+    
+
+    console.log("4. OTP Generated");
 
     user.resetOTP = otp;
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
 
     await user.save();
+    console.log("5. User Saved");
 
     const transporter =
       nodemailer.createTransport({
@@ -143,6 +150,8 @@ export const sendOTP = async (req, res) => {
           pass: process.env.EMAIL_PASS,
         },
       });
+
+    console.log("6. Transport Created");
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
