@@ -3,37 +3,37 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-async function test() {
-  try {
-    console.log("EMAIL_USER =", process.env.EMAIL_USER);
-    console.log("EMAIL_PASS EXISTS =", !!process.env.EMAIL_PASS);
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_SMTP_KEY,
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+});
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+try {
+  console.log("Testing SMTP...");
 
-    console.log("Verifying SMTP...");
-    await transporter.verify();
-    console.log("✅ SMTP Connected");
+  await transporter.verify();
 
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Test Mail",
-      text: "Hello from ConnectX",
-    });
+  console.log("SMTP Connected");
 
-    console.log("✅ Mail Sent");
-    console.log(info);
+  const info = await transporter.sendMail({
+    from: process.env.BREVO_USER,
+    to: process.env.BREVO_USER,
+    subject: "SMTP Test",
+    text: "Brevo SMTP is working",
+  });
 
-  } catch (err) {
-    console.error("ERROR:");
-    console.error(err);
-  }
+  console.log("SUCCESS");
+  console.log(info);
+
+} catch (err) {
+  console.error("ERROR:");
+  console.error(err);
 }
-
-test();
