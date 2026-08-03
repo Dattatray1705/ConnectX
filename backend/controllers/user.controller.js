@@ -141,6 +141,12 @@ export const sendOTP = async (req, res) => {
 
     await user.save();
     console.log("5. User Saved");
+    
+    console.log("BREVO_USER:", process.env.BREVO_USER);
+console.log(
+  "BREVO_SMTP_KEY:",
+  process.env.BREVO_SMTP_KEY ? "FOUND" : "NOT FOUND"
+);
 
   const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
